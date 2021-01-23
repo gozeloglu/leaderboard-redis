@@ -17,10 +17,6 @@ client.on('connect', function() {
     console.log("Redis is connected!");
 });
 
-client.zadd("user1", 123, function(err, res) {
-    console.log(res);
-});
-
 app.get('/leaderboard', (req, res) => {
     var obj = {
         "name": "Gökhan",
@@ -48,8 +44,9 @@ app.route('/leaderboard/:country_iso_code').get((req, res) => {
  */
 app.get('/user/profile/:guid', (req, res, next) => {
     /// TODO rank should be reversed
+    /// TODO Check rank is reversed or not
 
-    client.zrank("leaderboard_set", req.params.guid, function(err, rank) {
+    client.zrevrank("leaderboard_set", req.params.guid, function(err, rank) {
         if (err) {
             next(err);
         } else {
@@ -78,8 +75,38 @@ app.get('/user/profile/:guid', (req, res, next) => {
     });
 });
 
-app.post('/score/submit', (req, res) => {
-    // TODO JSON object should be taken
+app.post('/score/submit', (req, res, next) => {
+
+    if (timestampIsFuture(req.body.timestamp)) {
+        res.send("You cannot submit score for invalid time.")
+    } else {
+        client.zscore("leaderboard_set", req.body.user_id, function(err, score) {
+            if (err) {
+                res.send("Player could not find!")
+                next(err);
+            } else {
+                var player_score = parseInt(score, 10)
+                player_score += req.body.score_worth
+                client.zadd(["leaderboard_set", player_score, req.body.user_id], function(err, response) {
+                    if (err) {
+                        res.send("Player could not find!")
+                        next(err)
+                    } else {
+    
+                        // Fetch updated rank
+                        client.zrevrank("leaderboard_set", req.body.user_id, function(err, rank) {
+                            if (err) {
+                                next(err)
+                            } else {
+                                res.send("Player's new score is: " + player_score + "\n" + 
+                                        "Player's rank is: " + modifyPlayerRank(rank+1))
+                            }
+                        })
+                    }
+                })
+            }
+        });
+    }
 });
 
 /**
@@ -128,6 +155,39 @@ app.post('/user/create', (req, res, next) => {
     })
 });
 
+
+/**
+ * @description Modifies the rank string with suffix
+ * Puts the number sufficies at the end of the number
+ * @param {number} rank - Player's rank
+ * @returns String rank number
+ */
+function modifyPlayerRank(rank) {
+    var rank_num = (rank)
+    if (rank_num % 10 === 1) {
+        return rank_num.toString() + "st"
+    } else if (rank_num % 10 === 2) {
+        return rank_num.toString() + "nd"
+    } else if (rank_num % 10 === 3) {
+        return rank_num.toString() + "rd"
+    } else {
+        return rank_num.toString() + "th"
+    }
+}
+
+/**
+ * @description Compares the current timestamp and player submit timestamp
+ * @param {number} timestamp - Score submit timestamp
+ * @returns true if submit time is in the future
+ *          false if submit time is in the now or past
+ */
+function timestampIsFuture(timestamp) {
+    var currentDate = new Date();
+    var currentTimestamp = currentDate.getTime();
+    currentTimestamp = currentTimestamp.toString().substr(0, 10);
+
+    return timestamp <= currentTimestamp ? false : true
+}
 
 app.listen(8000, function(){
     console.log("server is running");
