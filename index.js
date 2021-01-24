@@ -235,7 +235,7 @@ app.post('/user/create', (req, res, next) => {
                             user_id: req.body.user_id,
                             display_name: req.body.display_name,
                             points: req.body.points,
-                            rank: playerRank,
+                            rank: playerRank+1,
                             country: req.body.country
                      });
                     })
