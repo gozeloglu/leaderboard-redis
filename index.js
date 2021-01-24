@@ -140,7 +140,7 @@ app.get('/user/profile/:guid', (req, res, next) => {
                             user_id: req.params.guid,
                             display_name: response[0],
                             points: response[1],
-                            rank: rank,
+                            rank: rank+1,
                             country: response[2]
                         });
                     }
