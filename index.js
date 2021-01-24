@@ -70,6 +70,7 @@ app.route('/leaderboard/:country_iso_code').get((req, res) => {
             var leaderboardArr = new Array();           
             var fetchedUserCount = 0;   // Counts the fetched user count
             var j = 0;
+            var isSent = false;
 
             for (let i = 0; i < leaderboard.length; i += 2) {
                 client.hmget(leaderboard[i], ["name", "country"], function(err, playerData) {
@@ -86,7 +87,8 @@ app.route('/leaderboard/:country_iso_code').get((req, res) => {
                         j++;
 
                         if (fetchedUserCount == leaderboard.length/2) {
-                            if (leaderboard.length == 0) {
+                            isSent = true;
+                            if (leaderboardArr.length == 0) {
                                 res.send("There is no player from " + req.params.country_iso_code)
                             } else {
                                 res.send(leaderboardArr);
@@ -94,7 +96,8 @@ app.route('/leaderboard/:country_iso_code').get((req, res) => {
                         }
                     }
 
-                    if (fetchedUserCount == leaderboard.length/2) {
+                    if (fetchedUserCount == leaderboard.length/2 && !isSent) {
+                        isSent = true;
                         if (leaderboardArr.length == 0) {
                             res.send("There is no player from " + req.params.country_iso_code)
                         } else {
