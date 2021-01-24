@@ -255,15 +255,15 @@ app.post('/user/create', (req, res, next) => {
  * @returns String rank number
  */
 function modifyPlayerRank(rank) {
-    var rank_num = (rank)
-    if (rank_num % 10 === 1) {
-        return rank_num.toString() + "st"
-    } else if (rank_num % 10 === 2) {
-        return rank_num.toString() + "nd"
-    } else if (rank_num % 10 === 3) {
-        return rank_num.toString() + "rd"
+    
+    if (rank % 10 === 1) {
+        return rank.toString() + "st"
+    } else if (rank % 10 === 2) {
+        return rank.toString() + "nd"
+    } else if (rank % 10 === 3) {
+        return rank.toString() + "rd"
     } else {
-        return rank_num.toString() + "th"
+        return rank.toString() + "th"
     }
 }
 
@@ -284,3 +284,5 @@ function timestampIsFuture(timestamp) {
 app.listen(8000, function(){
     console.log("server is running");
 });
+
+module.exports = { timestampIsFuture, modifyPlayerRank }
