@@ -25,7 +25,8 @@ client.on('connect', function() {
  * @returns List of JSON object that contains user information
  */
 app.get('/leaderboard', (req, res, next) => {
-    
+    // TODO Check user information is null or not
+
     client.zrevrange("leaderboard_set", 0, -1, "withscores", function(err, leaderboard) {
         if (err) {
             next(err);
@@ -54,10 +55,57 @@ app.get('/leaderboard', (req, res, next) => {
     })
 });
 
+/**
+ * @description Fetches the data according to the country code
+ * @param  {string} country_iso_code - Indicates the country
+ * @returns List of JSON objects that includes user informaation
+ */
 app.route('/leaderboard/:country_iso_code').get((req, res) => {
-    console.log(req.params.country_iso_code)
-    res.send(req.params.country_iso_code)
-    return "Country"
+    
+    client.zrevrange("leaderboard_set", 0, -1, "withscores", function(err, leaderboard) {
+        if (err) {
+            next(err);
+            return err;
+        } else {
+            var leaderboardArr = new Array();           
+            var fetchedUserCount = 0;   // Counts the fetched user count
+            var j = 0;
+
+            for (let i = 0; i < leaderboard.length; i += 2) {
+                client.hmget(leaderboard[i], ["name", "country"], function(err, playerData) {
+                    fetchedUserCount++;
+                    
+                    if (playerData[1] === req.params.country_iso_code)  {
+                        const player = {
+                            rank: (i/2) + 1,
+                            points: leaderboard[i+1],
+                            display_name: playerData[0],
+                            country: playerData[1]
+                        }
+                        leaderboardArr[j] = player;
+                        j++;
+
+                        if (fetchedUserCount == leaderboard.length/2) {
+                            if (leaderboard.length == 0) {
+                                res.send("There is no player from " + req.params.country_iso_code)
+                            } else {
+                                res.send(leaderboardArr);
+                            }
+                        }
+                    }
+
+                    if (fetchedUserCount == leaderboard.length/2) {
+                        if (leaderboardArr.length == 0) {
+                            res.send("There is no player from " + req.params.country_iso_code)
+                        } else {
+                            res.send(leaderboardArr);
+                        }
+                    }
+                })
+            }
+        }
+    })
+
 });
 
 /**
