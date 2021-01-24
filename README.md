@@ -1,10 +1,10 @@
 # Leaderboard - Redis
 
-This is a *Node.js* implementation of the leadboard backend by using **Redis**. Project has basic features of the leaderboard operations like adding new player, storing scores and player information. 
+This is a **Node.js** implementation of the leadboard backend by using **Redis**. Project has basic features of the leaderboard operations like adding new player, storing scores and player information. 
 
 # Redis 
 
-**Redis** is an open-source, in-memory data structure store, used as a database, cache, and message broker. Redis has some nice data structures strings, hashes, lists, sets, sorted sets. 
+**Redis** is an open-source, in-memory data structure store, used as a database, cache, and message broker. Redis has some nice data structures strings, hashes, lists, sets, sorted sets. To get more information from [here](https://redis.io/).
 
 # Challenge 
 
@@ -63,7 +63,7 @@ $ npm install
 
 Before running the project, be sure that you saved the **PORT**, **HOST**, and **PASSWORD** on your environment. 
 
-**Environments:**
+**Environment Variables:**
 
 * `REDIS_HOST`
 * `REDIS_PORT`
