@@ -17,14 +17,41 @@ client.on('connect', function() {
     console.log("Redis is connected!");
 });
 
-app.get('/leaderboard', (req, res) => {
-    var obj = {
-        "name": "Gökhan",
-        "Country": "Tr"
-    }
-    //res.send('Leaderboard')
-    res.send(obj)
-    return "Game Leaderboard"
+/**
+ * @description Fetches the leaderboard
+ * Gets leaderboard from Redis in reverse order
+ * Fetches the player information by using user_id
+ * 
+ * @returns List of JSON object that contains user information
+ */
+app.get('/leaderboard', (req, res, next) => {
+    
+    client.zrevrange("leaderboard_set", 0, -1, "withscores", function(err, leaderboard) {
+        if (err) {
+            next(err);
+            return err;
+        } else {
+            var leaderboardArr = new Array(leaderboard.length/2);           
+            var fetchedUserCount = 0;   // Counts the fetched user count
+
+            for (let i = 0; i < leaderboard.length; i += 2) {
+                client.hmget(leaderboard[i], ["name", "country"], function(err, playerData) {
+                    const player = {
+                        rank: (i/2) + 1,
+                        points: leaderboard[i+1],
+                        display_name: playerData[0],
+                        country: playerData[1]
+                    }
+                    leaderboardArr[i/2] = player;
+                    fetchedUserCount++;
+
+                    if (fetchedUserCount == leaderboard.length/2) {
+                        res.send(leaderboardArr);
+                    }
+                })
+            }
+        }
+    })
 });
 
 app.route('/leaderboard/:country_iso_code').get((req, res) => {
@@ -75,6 +102,20 @@ app.get('/user/profile/:guid', (req, res, next) => {
     });
 });
 
+/**
+ * @description Submits the player score by adding new score to old one
+ * Checks the timestamp whether is valid or not wrt to current
+ * Checks the player is exist or not
+ * 
+ * @returns Player's new score and player's new rank
+ * 
+ * Sample JSON Object:
+ * {
+ *  "score_worth": <last score>,
+ *  "user_id": <valid user id>,
+ *  "timestamp": <submit timestamp>
+ * }
+ */
 app.post('/score/submit', (req, res, next) => {
 
     if (timestampIsFuture(req.body.timestamp)) {
