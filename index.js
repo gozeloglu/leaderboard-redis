@@ -25,7 +25,6 @@ client.on('connect', function() {
  * @returns List of JSON object that contains user information
  */
 app.get('/leaderboard', (req, res, next) => {
-    // TODO Check user information is null or not
 
     client.zrevrange("leaderboard_set", 0, -1, "withscores", function(err, leaderboard) {
         if (err) {
@@ -121,8 +120,6 @@ app.route('/leaderboard/:country_iso_code').get((req, res) => {
  * player information with its rank.
  */
 app.get('/user/profile/:guid', (req, res, next) => {
-    /// TODO rank should be reversed
-    /// TODO Check rank is reversed or not
 
     client.zrevrank("leaderboard_set", req.params.guid, function(err, rank) {
         if (err) {
@@ -232,14 +229,17 @@ app.post('/user/create', (req, res, next) => {
                 if (err) {
                     next(err);
                 } else {
-                    res.setHeader('Content-Type', 'application/json');
-                    res.json({
-                         user_id: req.body.user_id,
-                         display_name: req.body.display_name,
-                         points: req.body.points,
-                         rank: req.body.rank,
-                         country: req.body.country
+                    client.zrevrank("leaderboard_set", req.body.user_id, function(err, playerRank) {
+                        res.setHeader('Content-Type', 'application/json');
+                        res.json({
+                            user_id: req.body.user_id,
+                            display_name: req.body.display_name,
+                            points: req.body.points,
+                            rank: playerRank,
+                            country: req.body.country
                      });
+                    })
+                    
                 }
             })
         }
