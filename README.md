@@ -216,7 +216,9 @@ Player's rank is: 4th
 
 **UNSUCCESSFUL SUBMIT**
 ```
-Player could not find!
+{
+    msg: "Player could not find!"
+}
 ```
 
 The response will be a string that includes a message with new rank and new score. If the user id does not exist in Redis, unsuccessful submit message will be returned.

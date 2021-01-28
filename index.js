@@ -88,7 +88,9 @@ app.route('/leaderboard/:country_iso_code').get((req, res) => {
                         if (fetchedUserCount == leaderboard.length/2) {
                             isSent = true;
                             if (leaderboardArr.length == 0) {
-                                res.send("There is no player from " + req.params.country_iso_code)
+                                res.json({
+                                    msg: "There is no player from " + req.params.country_iso_code
+                                });
                             } else {
                                 res.send(leaderboardArr);
                             }
@@ -98,7 +100,9 @@ app.route('/leaderboard/:country_iso_code').get((req, res) => {
                     if (fetchedUserCount == leaderboard.length/2 && !isSent) {
                         isSent = true;
                         if (leaderboardArr.length == 0) {
-                            res.send("There is no player from " + req.params.country_iso_code)
+                            res.json({
+                                msg: "There is no player from " + req.params.country_iso_code
+                            });
                         } else {
                             res.send(leaderboardArr);
                         }
@@ -178,7 +182,9 @@ app.post('/score/submit', (req, res, next) => {
                 player_score += req.body.score_worth
                 client.zadd(["leaderboard_set", player_score, req.body.user_id], function(err, response) {
                     if (err) {
-                        res.send("Player could not find!")
+                        res.json({
+                            msg: "Player could not find!"
+                        });
                         next(err)
                     } else {
     
@@ -187,8 +193,11 @@ app.post('/score/submit', (req, res, next) => {
                             if (err) {
                                 next(err)
                             } else {
-                                res.send("Player's new score is: " + player_score + "\n" + 
-                                        "Player's rank is: " + modifyPlayerRank(rank+1))
+                                var res_msg = "Player's new score is: " + player_score + 
+                                            "\nPlayer's rank is: " + modifyPlayerRank(rank+1);
+                                res.json({
+                                    msg: res_msg
+                                    });
                             }
                         })
                     }
