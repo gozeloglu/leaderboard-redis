@@ -249,3 +249,38 @@ The body includes user id, user name, total points, and country. Rank is not add
 }
 ```
 The response will be the same JSON object. Rank is added to body object in request. The rank will be determined by alphabetical order if the scores is the same. 
+
+### DELETE - Delete User
+
+Deletes the user by user id from Redis DB. 
+
+```
+/user/delete/<user_id>
+Example: http://localhost:8000/user/delete/e4cdb120-28fc-4285-a78d-eb48660b7730
+```
+
+Returns a JSON object that includes the success or error messages by result of the delete operation. 
+
+#### Success message
+
+```
+{
+    "success_message": "e4cdb120-28fc-4285-a78d-eb48660b7730 is removed"
+}
+```
+
+#### Error message
+
+```
+{
+    "error_message": "User could not removed from sorted set."
+}
+```
+
+or 
+
+```
+{
+    "error_message": "User could not removed from hash."
+}
+```
