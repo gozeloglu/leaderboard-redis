@@ -247,6 +247,42 @@ app.post('/user/create', (req, res, next) => {
     })
 });
 
+/**
+ * @description Deletes the user from Redis database
+ * Firstly, user personal information is deleted from hash
+ * Then, user's id and score is deleted from sorted set
+ * @param {string} user_id - The user's id that we want to delete
+ * @returns Success message if the user is deleted from Redis DB successfully
+ * Error message returns if the user is not deleted from Redis DB
+ */
+app.delete('/user/delete/:user_id', (req, res) => {
+    
+    client.hdel(req.params.user_id, "name", "points", "country",req.params.user_id, function(err, response) {
+        if (err) {
+            res.status(400);
+            res.setHeader('Content-Type', 'application/json');
+            res.json({
+                error_message: "User could not deleted from hash."
+            });
+        } else {
+            client.zrem("leaderboard_set", req.params.user_id, function(err, removedMemberCount) {
+                if (err) {
+                    res.status(400);
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json({
+                        error_message: "User could not removed from sorted set."
+                    });
+                } else {
+                    res.status(200);
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json({
+                        success_message: `${req.params.user_id} is removed`
+                    });
+                }
+            })
+        }
+    })
+})
 
 /**
  * @description Modifies the rank string with suffix
